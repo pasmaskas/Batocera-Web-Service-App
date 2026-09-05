@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🕹️ Barocera Web Services
+# Barocera Web Services
 
 **Your Batocera Web Services frontend, in one tap.**
 
@@ -14,7 +14,7 @@ A lightweight Android app that connects directly to your Batocera Web Services i
 
 ---
 
-## 📥 Download
+## Download
 
 Grab the latest APK from the **[Releases](../../releases)** page and install it on your Android device or tablet.
 
@@ -22,17 +22,17 @@ Grab the latest APK from the **[Releases](../../releases)** page and install it 
 
 ---
 
-## ✨ Why Barocera Web Services
+## Why Barocera Web Services
 
 Batocera Web Services already gives you a browser-based front end for your retro gaming setup — but keeping a browser tab, bookmark, and address bar around every time gets old fast. **Barocera Web Services** turns that same web interface into a real app on your device:
 
-- 🔢 **One-time setup** — enter your Batocera's IP address once, the app remembers it
-- 🎯 **Instant launch** — every time after that, the app opens straight into your Batocera interface, no typing required
-- 🔒 **No wrong addresses** — the connection format (`http://` + port `1234`) is built in, you only ever type the IP
-- 📡 **Built for local networks** — works out of the box with the plain `http://` connections Batocera Web Services uses on your home network
-- 🔄 **Switch machines anytime** — reset the app's storage (or reinstall) to connect to a different Batocera
+- **One-time setup** — enter your Batocera's IP address once, the app remembers it
+- **Instant launch** — every time after that, the app opens straight into your Batocera interface, no typing required
+- **No wrong addresses** — the connection format (`http://` + port `1234`) is built in, you only ever type the IP
+- **Built for local networks** — works out of the box with the plain `http://` connections Batocera Web Services uses on your home network
+- **Switch machines anytime** — reset the app's storage (or reinstall) to connect to a different Batocera
 
-## 📱 Getting Started
+## Getting Started
 
 1. Install the APK (see [Download](#-download) above)
 2. Open **Barocera Web Services**
@@ -45,7 +45,7 @@ http://  [ 192.168.1.10 ]  :1234
 ```
 *(You only fill in the middle — the rest is already set up for you.)*
 
-## 🔁 Connecting to a Different Batocera
+## Connecting to a Different Batocera
 
 Want to point the app at a different machine or IP?
 
@@ -54,7 +54,7 @@ Want to point the app at a different machine or IP?
 
 Either way, you'll be asked for a new IP address the next time you open it.
 
-## 🛠️ Requirements
+## Requirements
 
 - Android 5.0 (API 21) or newer
 - Your Batocera machine and your Android device on the same local network
@@ -63,7 +63,7 @@ Either way, you'll be asked for a new IP address the next time you open it.
 ---
 
 <details>
-<summary><strong>🧑‍💻 For developers — building this app from source</strong></summary>
+<summary><strong>For developers — building this app from source</strong></summary>
 
 ### Project structure
 
