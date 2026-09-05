@@ -2,6 +2,8 @@
 
 **Your Batocera Web Services frontend, in one tap.**
 
+<img width="1220" height="1141" alt="Screenshot_20260905-134949_Photos~2" src="https://github.com/user-attachments/assets/76310ce7-4164-4f0d-bd98-47e8469fdf58" />
+
 A lightweight Android app that connects directly to your Batocera Web Services instance — no browser, no typing full addresses every time, just your emulation console at your fingertips.
 
 [![Platform](https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white)](#)
