@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.method.DigitsKeyListener;
 import android.view.View;
-import android.view.WindowManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -30,11 +29,6 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        getWindow().setFlags(
-                WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        hideSystemUI();
-
         setContentView(R.layout.activity_main);
 
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
@@ -44,14 +38,12 @@ public class MainActivity extends Activity {
         ipInput = findViewById(R.id.ipInput);
         Button connectButton = findViewById(R.id.connectButton);
 
-        // Alleen cijfers en punten toestaan in het IP-veld
         ipInput.setKeyListener(DigitsKeyListener.getInstance("0123456789."));
 
         setupWebView();
 
         String savedIp = prefs.getString(KEY_IP, null);
         if (savedIp != null && !savedIp.isEmpty()) {
-            // Al eerder ingesteld -> direct openen, geen invulscherm tonen
             showWebView();
             webView.loadUrl(PREFIX + savedIp + PORT);
         } else {
@@ -90,23 +82,6 @@ public class MainActivity extends Activity {
     private void showWebView() {
         inputScreen.setVisibility(View.GONE);
         webView.setVisibility(View.VISIBLE);
-    }
-
-    private void hideSystemUI() {
-        View decorView = getWindow().getDecorView();
-        decorView.setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_FULLSCREEN);
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) hideSystemUI();
     }
 
     @Override
