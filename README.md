@@ -1,5 +1,3 @@
-<div align="center">
-
 # Barocera Web Services
 
 **Your Batocera Web Services frontend, in one tap.**
@@ -9,8 +7,6 @@ A lightweight Android app that connects directly to your Batocera Web Services i
 [![Platform](https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white)](#)
 [![Min SDK](https://img.shields.io/badge/min%20SDK-21%20(Android%205.0)-blue)](#)
 [![License](https://img.shields.io/badge/license-personal%20use-lightgrey)](#)
-
-</div>
 
 ---
 
@@ -34,7 +30,7 @@ Batocera Web Services already gives you a browser-based front end for your retro
 
 ## Getting Started
 
-1. Install the APK (see [Download](#-download) above)
+1. Install the APK (see **Download** above)
 2. Open **Barocera Web Services**
 3. On first launch, enter the IP address of your Batocera machine — for example `192.168.1.10`
 4. Tap **Connect**
@@ -59,55 +55,3 @@ Either way, you'll be asked for a new IP address the next time you open it.
 - Android 5.0 (API 21) or newer
 - Your Batocera machine and your Android device on the same local network
 - Batocera Web Services running and reachable on port `1234`
-
----
-
-<details>
-<summary><strong>For developers — building this app from source</strong></summary>
-
-### Project structure
-
-```
-WebApp/
-├── app/src/main/
-│   ├── java/com/example/webapp/MainActivity.java   # Builds http://<ip>:1234 and saves it
-│   ├── res/layout/activity_main.xml                 # IP-only setup screen + WebView
-│   ├── res/drawable/                                # Background, buttons, logo
-│   ├── res/mipmap-*/                                # App icon in all densities
-│   └── AndroidManifest.xml
-├── .github/workflows/build.yml                      # Automated APK build via GitHub Actions
-├── gradlew / gradlew.bat                             # Gradle wrapper (pinned to Gradle 8.4)
-└── build.gradle
-```
-
-### Build via GitHub Actions (no local install required)
-
-1. Push this project to a GitHub repository (make sure the `.github` folder is included — it's easy to miss when drag-and-dropping)
-2. Open the **Actions** tab and wait for **Build APK** to finish (2–4 minutes)
-3. Download the `barocera-apk` artifact from the finished run
-4. Optionally attach it to a GitHub **Release** so others can download it from the Releases page above
-
-### Build via Android Studio
-
-1. Install [Android Studio](https://developer.android.com/studio)
-2. Open the `WebApp` folder as a project and let Gradle sync
-3. **Build → Build Bundle(s) / APK(s) → Build APK(s)**
-4. Find the APK under `app/build/outputs/apk/debug/`
-
-### Customization
-
-| Want to change... | Edit this |
-|---|---|
-| Fixed port (currently `:1234`) | `PORT` constant in `MainActivity.java` |
-| Protocol (currently `http://`) | `PREFIX` constant in `MainActivity.java` |
-| App name | `android:label` in `AndroidManifest.xml` |
-| App icon | Replace images in `res/mipmap-*/ic_launcher.png` |
-| Setup screen text/colors | `res/layout/activity_main.xml` and `res/values/colors.xml` |
-
-</details>
-
----
-
-<div align="center">
-<sub>Unofficial companion app for Batocera Web Services. Not affiliated with the Batocera project.</sub>
-</div>
