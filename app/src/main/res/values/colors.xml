@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_dark">#471E5E</color>
+    <color name="purple_blue">#372A91</color>
+    <color name="accent_orange">#FAAF3C</color>
+    <color name="accent_red">#BF171A</color>
+    <color name="white">#FFFFFF</color>
+    <color name="white_70">#B3FFFFFF</color>
+    <color name="card_bg">#332C1650</color>
+</resources>
