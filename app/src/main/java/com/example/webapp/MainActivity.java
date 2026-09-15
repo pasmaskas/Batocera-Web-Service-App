@@ -163,6 +163,7 @@ public class MainActivity extends Activity {
                 webView.setVisibility(View.GONE);
 
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+                hideSystemBars();
             }
 
             @Override
@@ -180,8 +181,27 @@ public class MainActivity extends Activity {
                 }
 
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+                showSystemBars();
             }
         });
+    }
+
+    /** Verbergt statusbalk en navigatiebalk volledig (alleen tijdens fullscreen video). */
+    private void hideSystemBars() {
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+    }
+
+    /** Zet statusbalk en navigatiebalk terug naar normaal zichtbaar. */
+    private void showSystemBars() {
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
     }
 
     // ---------- Schermen wisselen ----------
