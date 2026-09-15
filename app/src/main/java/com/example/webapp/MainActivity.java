@@ -223,10 +223,10 @@ public class MainActivity extends Activity {
         waitingProgress.setVisibility(View.GONE);
         String mac = prefs.getString(KEY_MAC, "");
         if (!mac.isEmpty()) {
-            waitingStatusText.setText("Barocera appears to be offline");
+            waitingStatusText.setText("Batocera appears to be offline");
             waitingActionButton.setText("⚡ Power On");
         } else {
-            waitingStatusText.setText("Can't reach Barocera Web Services");
+            waitingStatusText.setText("Can't reach Batocera Web Services");
             waitingActionButton.setText("Check Again");
         }
         waitingActionButton.setEnabled(true);
@@ -251,7 +251,7 @@ public class MainActivity extends Activity {
         waitingActionButton.setEnabled(false);
         waitingActionButton.setText("Turning on...");
         waitingProgress.setVisibility(View.VISIBLE);
-        waitingStatusText.setText("Waiting for Barocera to start...");
+        waitingStatusText.setText("Waiting for Batocera to start...");
         pollStep(url);
     }
 

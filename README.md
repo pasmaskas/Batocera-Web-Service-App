@@ -1,59 +1,81 @@
-# Barocera Web Services
+# Batocera Web Services
 
-**Your Batocera Web Services frontend, in one tap.**
+A minimal Android app that wraps a self-hosted web service in a native app shell. Enter the URL once, and the app remembers it — every subsequent launch goes straight to your service, no browser, no address bar, no distractions.
 
-<img width="1220" height="1141" alt="Screenshot_20260905-134949_Photos~2" src="https://github.com/user-attachments/assets/76310ce7-4164-4f0d-bd98-47e8469fdf58" />
+## Features
 
-A lightweight Android app that connects directly to your Batocera Web Services instance — no browser, no typing full addresses every time, just your emulation console at your fingertips.
+- 🔗 **Enter once, remembered forever** — the URL is saved on-device after the first launch
+- 🎯 **Direct launch** — on every following open, the app jumps straight to your saved URL
+- 🔄 **Easy reset** — clearing the app's storage (or reinstalling) brings back the setup screen so a new URL can be entered
+- 🌐 **Full URL support** — works with `http://` or `https://`, any host, IP address, or port (defaults to `http://` if no scheme is typed)
+- 📡 **Cleartext traffic allowed** — supports plain `http://` connections to local/internal servers, not just `https://`
+- 🎨 **Custom branded UI** — setup screen styled with the app's own logo and color palette
+- ⬅️ **Back button support** — navigates back within the web content before exiting the app
 
-[![Platform](https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white)](#)
-[![Min SDK](https://img.shields.io/badge/min%20SDK-21%20(Android%205.0)-blue)](#)
-[![License](https://img.shields.io/badge/license-personal%20use-lightgrey)](#)
+## How It Works
 
----
+1. **First launch** — a setup screen appears asking for the full URL of your service (e.g. `http://192.168.1.10:1234`)
+2. **Tap Connect** — the URL is saved locally and loaded immediately in a full-width WebView
+3. **Every launch after that** — the app skips the setup screen entirely and loads the saved URL right away
+4. **Starting over** — go to Android Settings → Apps → Batocera Web Services → Storage → Clear Data (or simply uninstall and reinstall the app) to be asked for a URL again
 
-## Download
-
-Grab the latest APK from the **[Releases](../../releases)** page and install it on your Android device or tablet.
-
-> **New here?** Enable installs from outside the Play Store first: **Settings → Apps → Special access → Install unknown apps**, and allow it for the app you used to download the APK (browser, file manager, etc.).
-
----
-
-## Why Barocera Web Services
-
-Batocera Web Services already gives you a browser-based front end for your retro gaming setup — but keeping a browser tab, bookmark, and address bar around every time gets old fast. **Barocera Web Services** turns that same web interface into a real app on your device:
-
-- **One-time setup** — enter your Batocera's IP address once, the app remembers it
-- **Instant launch** — every time after that, the app opens straight into your Batocera interface, no typing required
-- **No wrong addresses** — the connection format (`http://` + port `1234`) is built in, you only ever type the IP
-- **Built for local networks** — works out of the box with the plain `http://` connections Batocera Web Services uses on your home network
-- **Switch machines anytime** — reset the app's storage (or reinstall) to connect to a different Batocera
-
-## Getting Started
-
-1. Install the APK (see **Download** above)
-2. Open **Barocera Web Services**
-3. On first launch, enter the IP address of your Batocera machine — for example `192.168.1.10`
-4. Tap **Connect**
-5. That's it — the app now opens directly into your Batocera Web Services every time
+## Project Structure
 
 ```
-http://  [ 192.168.1.10 ]  :1234
+WebApp/
+├── app/
+│   └── src/main/
+│       ├── java/com/example/webapp/
+│       │   └── MainActivity.java      # Core app logic
+│       ├── res/
+│       │   ├── layout/
+│       │   │   └── activity_main.xml  # Setup screen + WebView layout
+│       │   ├── drawable/              # Gradient background, buttons, logo
+│       │   ├── mipmap-*/              # App icon in all densities
+│       │   └── values/
+│       │       ├── colors.xml
+│       │       └── styles.xml
+│       └── AndroidManifest.xml
+├── .github/workflows/build.yml        # Automated APK build via GitHub Actions
+├── gradlew / gradlew.bat              # Gradle wrapper (pinned to Gradle 8.4)
+└── build.gradle
 ```
-*(You only fill in the middle — the rest is already set up for you.)*
 
-## Connecting to a Different Batocera
+## Building the APK
 
-Want to point the app at a different machine or IP?
+### Option 1 — GitHub Actions (no local install required)
 
-- **Android Settings → Apps → Barocera Web Services → Storage → Clear storage**, or
-- **Uninstall and reinstall the app**
+This repository includes a ready-to-use workflow at `.github/workflows/build.yml`. On every push, GitHub automatically builds a debug APK for you.
 
-Either way, you'll be asked for a new IP address the next time you open it.
+1. Push this project to a GitHub repository (make sure the `.github` folder is included — it's easy to accidentally skip it when drag-and-dropping, since folders starting with a dot are sometimes hidden)
+2. Go to the **Actions** tab of your repository
+3. Wait for the **Build APK** workflow to finish (2–4 minutes)
+4. Open the completed run and download the **barocera-apk** artifact from the bottom of the page
+5. Transfer the `.apk` to your Android device and install it (allow "install from unknown sources" if prompted)
+
+### Option 2 — Android Studio
+
+1. Install [Android Studio](https://developer.android.com/studio)
+2. Open the `WebApp` folder as a project
+3. Let Gradle sync
+4. **Build → Build Bundle(s) / APK(s) → Build APK(s)**
+5. Find the APK under `app/build/outputs/apk/debug/`
+
+## Customization
+
+| Want to change... | Edit this |
+|---|---|
+| App name | `android:label` in `AndroidManifest.xml` |
+| App icon | Replace the images in `res/mipmap-*/ic_launcher.png` |
+| Setup screen text/colors | `res/layout/activity_main.xml` and `res/values/colors.xml` |
+| Package / applicationId | `app/build.gradle` |
 
 ## Requirements
 
-- Android 5.0 (API 21) or newer
-- Your Batocera machine and your Android device on the same local network
-- Batocera Web Services running and reachable on port `1234`
+- Minimum Android version: Android 5.0 (API 21)
+- Internet permission is required and requested automatically
+- Cleartext (`http://`) traffic is enabled by default to support local network servers
+
+## License
+
+This project is provided as-is for personal use.

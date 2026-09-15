@@ -37,7 +37,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Barocera"
+            android:text="Batocera"
             android:textColor="@color/white"
             android:textSize="30sp"
             android:textStyle="bold"
@@ -49,7 +49,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:layout_marginBottom="28dp"
-            android:text="Enter the full URL of your Barocera Web Services"
+            android:text="Enter the full URL of your Batocera Web Services"
             android:textColor="@color/white_70"
             android:textSize="14sp" />
 
@@ -118,7 +118,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Barocera"
+            android:text="Batocera"
             android:textColor="@color/white"
             android:textSize="30sp"
             android:textStyle="bold"
