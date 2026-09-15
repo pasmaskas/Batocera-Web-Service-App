@@ -49,7 +49,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:layout_marginBottom="28dp"
-            android:text="Enter the IP address of your Batocera"
+            android:text="Enter the IP address of your Batocera Web Service"
             android:textColor="@color/white_70"
             android:textSize="14sp" />
 
@@ -61,15 +61,15 @@
             android:background="@drawable/bg_card"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:paddingTop="4dp"
-            android:paddingBottom="4dp">
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="http://"
                 android:textColor="@color/accent_orange"
-                android:textSize="16sp"
+                android:textSize="15sp"
                 android:textStyle="bold" />
 
             <EditText
@@ -81,19 +81,20 @@
                 android:hint="192.168.1.10"
                 android:textColorHint="@color/white_70"
                 android:textColor="@color/white"
-                android:textSize="16sp"
+                android:textSize="15sp"
                 android:inputType="text"
                 android:maxLength="15"
                 android:gravity="center"
                 android:imeOptions="actionNext"
-                android:singleLine="true" />
+                android:singleLine="true"
+                android:padding="0dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text=":1234"
                 android:textColor="@color/accent_orange"
-                android:textSize="16sp"
+                android:textSize="15sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
