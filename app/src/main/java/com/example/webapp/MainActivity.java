@@ -6,6 +6,7 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.method.DigitsKeyListener;
 import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -30,8 +31,10 @@ import java.net.URL;
 public class MainActivity extends Activity {
 
     private static final String PREFS_NAME = "batocera_prefs";
-    private static final String KEY_URL = "saved_url";
+    private static final String KEY_IP = "saved_ip";
     private static final String KEY_MAC = "saved_mac";
+    private static final String PREFIX = "http://";
+    private static final String PORT = ":1234";
 
     private static final int CONNECT_TIMEOUT_MS = 2000;
     private static final int POLL_INTERVAL_MS = 3000;
@@ -41,7 +44,7 @@ public class MainActivity extends Activity {
     private LinearLayout inputScreen;
     private LinearLayout waitingScreen;
     private FrameLayout videoContainer;
-    private EditText urlInput;
+    private EditText ipInput;
     private EditText macInput;
     private TextView waitingStatusText;
     private ProgressBar waitingProgress;
@@ -73,7 +76,7 @@ public class MainActivity extends Activity {
         inputScreen = findViewById(R.id.inputScreen);
         waitingScreen = findViewById(R.id.waitingScreen);
         videoContainer = findViewById(R.id.videoContainer);
-        urlInput = findViewById(R.id.urlInput);
+        ipInput = findViewById(R.id.ipInput);
         macInput = findViewById(R.id.macInput);
         waitingStatusText = findViewById(R.id.waitingStatusText);
         waitingProgress = findViewById(R.id.waitingProgress);
@@ -81,28 +84,28 @@ public class MainActivity extends Activity {
         changeUrlText = findViewById(R.id.changeUrlText);
         Button connectButton = findViewById(R.id.connectButton);
 
+        // Alleen cijfers en punten toestaan in het IP-veld
+        ipInput.setKeyListener(DigitsKeyListener.getInstance("0123456789."));
+
         setupWebView();
 
         connectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String url = urlInput.getText().toString().trim();
+                String ip = ipInput.getText().toString().trim();
                 String mac = macInput.getText().toString().trim();
 
-                if (url.isEmpty()) {
-                    Toast.makeText(MainActivity.this, "Enter a URL", Toast.LENGTH_SHORT).show();
+                if (ip.isEmpty()) {
+                    Toast.makeText(MainActivity.this, "Enter an IP address", Toast.LENGTH_SHORT).show();
                     return;
-                }
-                if (!url.startsWith("http://") && !url.startsWith("https://")) {
-                    url = "http://" + url;
                 }
 
                 SharedPreferences.Editor editor = prefs.edit();
-                editor.putString(KEY_URL, url);
+                editor.putString(KEY_IP, ip);
                 editor.putString(KEY_MAC, mac);
                 editor.apply();
 
-                attemptConnect(url);
+                attemptConnect(buildUrl(ip));
             }
         });
 
@@ -117,18 +120,22 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 isPolling = false;
-                urlInput.setText(prefs.getString(KEY_URL, ""));
+                ipInput.setText(prefs.getString(KEY_IP, ""));
                 macInput.setText(prefs.getString(KEY_MAC, ""));
                 showInputScreen();
             }
         });
 
-        String savedUrl = prefs.getString(KEY_URL, null);
-        if (savedUrl != null && !savedUrl.isEmpty()) {
-            attemptConnect(savedUrl);
+        String savedIp = prefs.getString(KEY_IP, null);
+        if (savedIp != null && !savedIp.isEmpty()) {
+            attemptConnect(buildUrl(savedIp));
         } else {
             showInputScreen();
         }
+    }
+
+    private static String buildUrl(String ip) {
+        return PREFIX + ip + PORT;
     }
 
     private void setupWebView() {
@@ -234,7 +241,8 @@ public class MainActivity extends Activity {
     }
 
     private void handleWaitingAction() {
-        final String url = prefs.getString(KEY_URL, "");
+        final String ip = prefs.getString(KEY_IP, "");
+        final String url = buildUrl(ip);
         final String mac = prefs.getString(KEY_MAC, "");
 
         if (!mac.isEmpty()) {
