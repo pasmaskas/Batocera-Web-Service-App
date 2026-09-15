@@ -2,28 +2,64 @@ package com.example.webapp;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
-import android.text.method.DigitsKeyListener;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.Socket;
+import java.net.URL;
 
 public class MainActivity extends Activity {
 
     private static final String PREFS_NAME = "batocera_prefs";
-    private static final String KEY_IP = "saved_ip";
-    private static final String PORT = ":1234";
-    private static final String PREFIX = "http://";
+    private static final String KEY_URL = "saved_url";
+    private static final String KEY_MAC = "saved_mac";
+
+    private static final int CONNECT_TIMEOUT_MS = 2000;
+    private static final int POLL_INTERVAL_MS = 3000;
+    private static final int MAX_POLL_ATTEMPTS = 40; // ~2 minuten
 
     private WebView webView;
     private LinearLayout inputScreen;
-    private EditText ipInput;
+    private LinearLayout waitingScreen;
+    private FrameLayout videoContainer;
+    private EditText urlInput;
+    private EditText macInput;
+    private TextView waitingStatusText;
+    private ProgressBar waitingProgress;
+    private Button waitingActionButton;
+    private TextView changeUrlText;
     private SharedPreferences prefs;
+
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private boolean isPolling = false;
+    private int pollAttempts = 0;
+
+    // Bijhouden wat er nodig is om de fullscreen video weer te sluiten
+    private View customView;
+    private WebChromeClient.CustomViewCallback customViewCallback;
+
+    interface ConnectionCallback {
+        void onResult(boolean reachable);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,34 +71,64 @@ public class MainActivity extends Activity {
 
         webView = findViewById(R.id.webview);
         inputScreen = findViewById(R.id.inputScreen);
-        ipInput = findViewById(R.id.ipInput);
+        waitingScreen = findViewById(R.id.waitingScreen);
+        videoContainer = findViewById(R.id.videoContainer);
+        urlInput = findViewById(R.id.urlInput);
+        macInput = findViewById(R.id.macInput);
+        waitingStatusText = findViewById(R.id.waitingStatusText);
+        waitingProgress = findViewById(R.id.waitingProgress);
+        waitingActionButton = findViewById(R.id.waitingActionButton);
+        changeUrlText = findViewById(R.id.changeUrlText);
         Button connectButton = findViewById(R.id.connectButton);
 
-        ipInput.setKeyListener(DigitsKeyListener.getInstance("0123456789."));
-
         setupWebView();
-
-        String savedIp = prefs.getString(KEY_IP, null);
-        if (savedIp != null && !savedIp.isEmpty()) {
-            showWebView();
-            webView.loadUrl(PREFIX + savedIp + PORT);
-        } else {
-            showInputScreen();
-        }
 
         connectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String ip = ipInput.getText().toString().trim();
-                if (ip.isEmpty()) {
-                    Toast.makeText(MainActivity.this, "Enter an IP address", Toast.LENGTH_SHORT).show();
+                String url = urlInput.getText().toString().trim();
+                String mac = macInput.getText().toString().trim();
+
+                if (url.isEmpty()) {
+                    Toast.makeText(MainActivity.this, "Enter a URL", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                prefs.edit().putString(KEY_IP, ip).apply();
-                showWebView();
-                webView.loadUrl(PREFIX + ip + PORT);
+                if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                    url = "http://" + url;
+                }
+
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putString(KEY_URL, url);
+                editor.putString(KEY_MAC, mac);
+                editor.apply();
+
+                attemptConnect(url);
             }
         });
+
+        waitingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                handleWaitingAction();
+            }
+        });
+
+        changeUrlText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isPolling = false;
+                urlInput.setText(prefs.getString(KEY_URL, ""));
+                macInput.setText(prefs.getString(KEY_MAC, ""));
+                showInputScreen();
+            }
+        });
+
+        String savedUrl = prefs.getString(KEY_URL, null);
+        if (savedUrl != null && !savedUrl.isEmpty()) {
+            attemptConnect(savedUrl);
+        } else {
+            showInputScreen();
+        }
     }
 
     private void setupWebView() {
@@ -71,22 +137,253 @@ public class MainActivity extends Activity {
         settings.setDomStorageEnabled(true);
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
+        settings.setMediaPlaybackRequiresUserGesture(false);
         webView.setWebViewClient(new WebViewClient());
+
+        // Dit zorgt voor fullscreen HTML5-video (bv. <video> met de fullscreen-knop)
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onShowCustomView(View view, CustomViewCallback callback) {
+                if (customView != null) {
+                    callback.onCustomViewHidden();
+                    return;
+                }
+                customView = view;
+                customViewCallback = callback;
+
+                videoContainer.addView(view);
+                videoContainer.setVisibility(View.VISIBLE);
+                webView.setVisibility(View.GONE);
+
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+            }
+
+            @Override
+            public void onHideCustomView() {
+                if (customView == null) return;
+
+                videoContainer.removeView(customView);
+                videoContainer.setVisibility(View.GONE);
+                webView.setVisibility(View.VISIBLE);
+
+                customView = null;
+                if (customViewCallback != null) {
+                    customViewCallback.onCustomViewHidden();
+                    customViewCallback = null;
+                }
+
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+            }
+        });
     }
+
+    // ---------- Schermen wisselen ----------
 
     private void showInputScreen() {
         inputScreen.setVisibility(View.VISIBLE);
+        waitingScreen.setVisibility(View.GONE);
+        webView.setVisibility(View.GONE);
+    }
+
+    private void showWaitingScreen() {
+        inputScreen.setVisibility(View.GONE);
+        waitingScreen.setVisibility(View.VISIBLE);
         webView.setVisibility(View.GONE);
     }
 
     private void showWebView() {
         inputScreen.setVisibility(View.GONE);
+        waitingScreen.setVisibility(View.GONE);
         webView.setVisibility(View.VISIBLE);
+    }
+
+    // ---------- Verbinding checken / wachten ----------
+
+    private void attemptConnect(final String url) {
+        showWaitingScreen();
+        waitingStatusText.setText("Checking connection...");
+        waitingProgress.setVisibility(View.VISIBLE);
+        waitingActionButton.setVisibility(View.GONE);
+
+        checkReachable(url, new ConnectionCallback() {
+            @Override
+            public void onResult(boolean reachable) {
+                if (reachable) {
+                    isPolling = false;
+                    showWebView();
+                    webView.loadUrl(url);
+                } else {
+                    setWaitingOffline();
+                }
+            }
+        });
+    }
+
+    private void setWaitingOffline() {
+        waitingProgress.setVisibility(View.GONE);
+        String mac = prefs.getString(KEY_MAC, "");
+        if (!mac.isEmpty()) {
+            waitingStatusText.setText("Barocera appears to be offline");
+            waitingActionButton.setText("⚡ Power On");
+        } else {
+            waitingStatusText.setText("Can't reach Barocera Web Services");
+            waitingActionButton.setText("Check Again");
+        }
+        waitingActionButton.setEnabled(true);
+        waitingActionButton.setVisibility(View.VISIBLE);
+    }
+
+    private void handleWaitingAction() {
+        final String url = prefs.getString(KEY_URL, "");
+        final String mac = prefs.getString(KEY_MAC, "");
+
+        if (!mac.isEmpty()) {
+            sendWakeOnLan(mac);
+            startPolling(url);
+        } else {
+            attemptConnect(url);
+        }
+    }
+
+    private void startPolling(final String url) {
+        isPolling = true;
+        pollAttempts = 0;
+        waitingActionButton.setEnabled(false);
+        waitingActionButton.setText("Turning on...");
+        waitingProgress.setVisibility(View.VISIBLE);
+        waitingStatusText.setText("Waiting for Barocera to start...");
+        pollStep(url);
+    }
+
+    private void pollStep(final String url) {
+        if (!isPolling) return;
+        pollAttempts++;
+
+        checkReachable(url, new ConnectionCallback() {
+            @Override
+            public void onResult(boolean reachable) {
+                if (!isPolling) return;
+
+                if (reachable) {
+                    isPolling = false;
+                    showWebView();
+                    webView.loadUrl(url);
+                } else if (pollAttempts >= MAX_POLL_ATTEMPTS) {
+                    isPolling = false;
+                    waitingProgress.setVisibility(View.GONE);
+                    waitingActionButton.setEnabled(true);
+                    waitingActionButton.setText("⚡ Power On");
+                    waitingStatusText.setText("Still offline. Check the PC and try again.");
+                } else {
+                    mainHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            pollStep(url);
+                        }
+                    }, POLL_INTERVAL_MS);
+                }
+            }
+        });
+    }
+
+    /**
+     * Checkt of het opgegeven adres bereikbaar is door een korte socket-verbinding
+     * te proberen. Voert de callback altijd op de UI-thread uit.
+     */
+    private void checkReachable(final String urlString, final ConnectionCallback callback) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                boolean reachable = false;
+                try {
+                    URL url = new URL(urlString);
+                    String host = url.getHost();
+                    int port = url.getPort();
+                    if (port == -1) {
+                        port = url.getDefaultPort();
+                    }
+                    if (port == -1) {
+                        port = "https".equals(url.getProtocol()) ? 443 : 80;
+                    }
+
+                    Socket socket = new Socket();
+                    socket.connect(new InetSocketAddress(host, port), CONNECT_TIMEOUT_MS);
+                    socket.close();
+                    reachable = true;
+                } catch (MalformedURLException e) {
+                    reachable = false;
+                } catch (Exception e) {
+                    reachable = false;
+                }
+
+                final boolean result = reachable;
+                mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onResult(result);
+                    }
+                });
+            }
+        }).start();
+    }
+
+    /**
+     * Stuurt een Wake-on-LAN "magic packet" naar het opgegeven MAC-adres.
+     * Vereist dat WOL aanstaat op de doelmachine (BIOS + OS) en dat het
+     * toestel op hetzelfde lokale netwerk zit.
+     */
+    private void sendWakeOnLan(final String macAddress) {
+        if (macAddress == null || macAddress.isEmpty()) return;
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    byte[] macBytes = getMacBytes(macAddress);
+                    byte[] bytes = new byte[6 + 16 * macBytes.length];
+
+                    for (int i = 0; i < 6; i++) {
+                        bytes[i] = (byte) 0xFF;
+                    }
+                    for (int i = 6; i < bytes.length; i += macBytes.length) {
+                        System.arraycopy(macBytes, 0, bytes, i, macBytes.length);
+                    }
+
+                    InetAddress address = InetAddress.getByName("255.255.255.255");
+                    DatagramPacket packet = new DatagramPacket(bytes, bytes.length, address, 9);
+                    DatagramSocket socket = new DatagramSocket();
+                    socket.setBroadcast(true);
+                    socket.send(packet);
+                    socket.close();
+                } catch (final Exception e) {
+                    mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, "Failed to send power on signal: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+
+    private static byte[] getMacBytes(String macStr) throws IllegalArgumentException {
+        byte[] bytes = new byte[6];
+        String[] hex = macStr.split("[:\\-]");
+        if (hex.length != 6) {
+            throw new IllegalArgumentException("Invalid MAC address, expected format AA:BB:CC:DD:EE:FF");
+        }
+        for (int i = 0; i < 6; i++) {
+            bytes[i] = (byte) Integer.parseInt(hex[i], 16);
+        }
+        return bytes;
     }
 
     @Override
     public void onBackPressed() {
-        if (webView.getVisibility() == View.VISIBLE && webView.canGoBack()) {
+        if (customView != null) {
+            webView.getWebChromeClient().onHideCustomView();
+        } else if (webView.getVisibility() == View.VISIBLE && webView.canGoBack()) {
             webView.goBack();
         } else {
             super.onBackPressed();
