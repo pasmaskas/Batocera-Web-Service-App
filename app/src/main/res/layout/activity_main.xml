@@ -49,46 +49,24 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:layout_marginBottom="28dp"
-            android:text="Enter the IP address of your Batocera Web Service"
+            android:text="Enter the URL of your Batocera Web Service"
             android:textColor="@color/white_70"
             android:textSize="14sp" />
 
-        <LinearLayout
+        <EditText
+            android:id="@+id/urlInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
             android:background="@drawable/bg_card"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingTop="14dp"
-            android:paddingBottom="14dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="http://"
-                android:textColor="@color/accent_orange"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                android:layout_marginEnd="4dp" />
-
-            <EditText
-                android:id="@+id/ipInput"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@null"
-                android:hint="192.168.1.10:1234"
-                android:textColorHint="@color/white_70"
-                android:textColor="@color/white"
-                android:textSize="15sp"
-                android:inputType="textUri"
-                android:gravity="center_vertical"
-                android:imeOptions="actionNext"
-                android:singleLine="true"
-                android:padding="0dp" />
-        </LinearLayout>
+            android:padding="14dp"
+            android:gravity="center"
+            android:hint="http://192.168.1.10:1234"
+            android:textColorHint="@color/white_70"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:inputType="textUri"
+            android:imeOptions="actionNext"
+            android:singleLine="true" />
 
         <EditText
             android:id="@+id/macInput"
@@ -97,6 +75,7 @@
             android:layout_marginTop="10dp"
             android:background="@drawable/bg_card"
             android:padding="14dp"
+            android:gravity="center"
             android:hint="MAC address (optional, for Power On)"
             android:textColorHint="@color/white_70"
             android:textColor="@color/white"
