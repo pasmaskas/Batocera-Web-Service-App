@@ -7,7 +7,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.text.method.DigitsKeyListener;
 import android.view.View;
 import android.view.WindowManager;
 import android.webkit.WebChromeClient;
@@ -33,7 +32,8 @@ import java.net.URL;
 public class MainActivity extends Activity {
 
     private static final String PREFS_NAME = "batocera_prefs";
-    private static final String KEY_IP = "saved_ip";
+    private static final String KEY_ADDRESS = "saved_address";
+    private static final String KEY_IP = "saved_ip"; // oude versies
     private static final String KEY_MAC = "saved_mac";
     private static final String PREFIX = "http://";
     private static final String KEY_PORT = "saved_port";
@@ -48,7 +48,6 @@ public class MainActivity extends Activity {
     private LinearLayout waitingScreen;
     private FrameLayout videoContainer;
     private EditText ipInput;
-    private EditText portInput;
     private EditText macInput;
     private TextView waitingStatusText;
     private ProgressBar waitingProgress;
@@ -81,7 +80,6 @@ public class MainActivity extends Activity {
         waitingScreen = findViewById(R.id.waitingScreen);
         videoContainer = findViewById(R.id.videoContainer);
         ipInput = findViewById(R.id.ipInput);
-        portInput = findViewById(R.id.portInput);
         macInput = findViewById(R.id.macInput);
         waitingStatusText = findViewById(R.id.waitingStatusText);
         waitingProgress = findViewById(R.id.waitingProgress);
@@ -89,33 +87,29 @@ public class MainActivity extends Activity {
         changeUrlText = findViewById(R.id.changeUrlText);
         Button connectButton = findViewById(R.id.connectButton);
 
-        // Alleen cijfers en punten toestaan in het IP-veld
-        ipInput.setKeyListener(DigitsKeyListener.getInstance("0123456789."));
-
         setupWebView();
 
         connectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String ip = ipInput.getText().toString().trim();
-                String port = portInput.getText().toString().trim();
-                if (port.isEmpty()) {
-                    port = DEFAULT_PORT;
+                String address = ipInput.getText().toString().trim();
+                // Als iemand zelf http:// typt, haal die weg (staat al vast voor het veld)
+                if (address.toLowerCase().startsWith("http://")) {
+                    address = address.substring(7);
                 }
                 String mac = macInput.getText().toString().trim();
 
-                if (ip.isEmpty()) {
-                    Toast.makeText(MainActivity.this, "Enter an IP address", Toast.LENGTH_SHORT).show();
+                if (address.isEmpty()) {
+                    Toast.makeText(MainActivity.this, "Enter an address, e.g. 192.168.1.10:1234", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
                 SharedPreferences.Editor editor = prefs.edit();
-                editor.putString(KEY_IP, ip);
-                editor.putString(KEY_PORT, port);
+                editor.putString(KEY_ADDRESS, address);
                 editor.putString(KEY_MAC, mac);
                 editor.apply();
 
-                attemptConnect(buildUrl(ip, port));
+                attemptConnect(buildUrl(address));
             }
         });
 
@@ -130,23 +124,38 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 isPolling = false;
-                ipInput.setText(prefs.getString(KEY_IP, ""));
-                portInput.setText(prefs.getString(KEY_PORT, DEFAULT_PORT));
+                ipInput.setText(getSavedAddress());
                 macInput.setText(prefs.getString(KEY_MAC, ""));
                 showInputScreen();
             }
         });
 
-        String savedIp = prefs.getString(KEY_IP, null);
-        if (savedIp != null && !savedIp.isEmpty()) {
-            attemptConnect(buildUrl(savedIp, prefs.getString(KEY_PORT, DEFAULT_PORT)));
+        String savedAddress = getSavedAddress();
+        if (!savedAddress.isEmpty()) {
+            attemptConnect(buildUrl(savedAddress));
         } else {
             showInputScreen();
         }
     }
 
-    private static String buildUrl(String ip, String port) {
-        return PREFIX + ip + ":" + port;
+    private static String buildUrl(String address) {
+        return PREFIX + address;
+    }
+
+    /**
+     * Geeft het opgeslagen adres (bv. 192.168.1.10:1234). Oude installaties
+     * hadden alleen een IP met vaste poort; die worden hier eenmalig omgezet.
+     */
+    private String getSavedAddress() {
+        String address = prefs.getString(KEY_ADDRESS, "");
+        if (address.isEmpty()) {
+            String oldIp = prefs.getString(KEY_IP, "");
+            if (!oldIp.isEmpty()) {
+                address = oldIp + ":" + prefs.getString(KEY_PORT, DEFAULT_PORT);
+                prefs.edit().putString(KEY_ADDRESS, address).apply();
+            }
+        }
+        return address;
     }
 
     private void setupWebView() {
@@ -288,8 +297,7 @@ public class MainActivity extends Activity {
     }
 
     private void handleWaitingAction() {
-        final String ip = prefs.getString(KEY_IP, "");
-        final String url = buildUrl(ip, prefs.getString(KEY_PORT, DEFAULT_PORT));
+        final String url = buildUrl(getSavedAddress());
         final String mac = prefs.getString(KEY_MAC, "");
 
         if (!mac.isEmpty()) {
