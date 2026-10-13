@@ -70,7 +70,8 @@
                 android:text="http://"
                 android:textColor="@color/accent_orange"
                 android:textSize="15sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:layout_marginEnd="4dp" />
 
             <EditText
                 android:id="@+id/ipInput"
@@ -78,39 +79,12 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:background="@null"
-                android:hint="192.168.1.10"
+                android:hint="192.168.1.10:1234"
                 android:textColorHint="@color/white_70"
                 android:textColor="@color/white"
                 android:textSize="15sp"
-                android:inputType="text"
-                android:maxLength="15"
-                android:gravity="center"
-                android:imeOptions="actionNext"
-                android:singleLine="true"
-                android:padding="0dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=":"
-                android:textColor="@color/accent_orange"
-                android:textSize="15sp"
-                android:textStyle="bold" />
-
-            <EditText
-                android:id="@+id/portInput"
-                android:layout_width="64dp"
-                android:layout_height="wrap_content"
-                android:background="@null"
-                android:hint="1234"
-                android:text="1234"
-                android:textColorHint="@color/white_70"
-                android:textColor="@color/accent_orange"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                android:inputType="number"
-                android:maxLength="5"
-                android:gravity="center"
+                android:inputType="textUri"
+                android:gravity="center_vertical"
                 android:imeOptions="actionNext"
                 android:singleLine="true"
                 android:padding="0dp" />
