@@ -36,7 +36,8 @@ public class MainActivity extends Activity {
     private static final String KEY_IP = "saved_ip";
     private static final String KEY_MAC = "saved_mac";
     private static final String PREFIX = "http://";
-    private static final String PORT = ":1234";
+    private static final String KEY_PORT = "saved_port";
+    private static final String DEFAULT_PORT = "1234";
 
     private static final int CONNECT_TIMEOUT_MS = 2000;
     private static final int POLL_INTERVAL_MS = 3000;
@@ -47,6 +48,7 @@ public class MainActivity extends Activity {
     private LinearLayout waitingScreen;
     private FrameLayout videoContainer;
     private EditText ipInput;
+    private EditText portInput;
     private EditText macInput;
     private TextView waitingStatusText;
     private ProgressBar waitingProgress;
@@ -79,6 +81,7 @@ public class MainActivity extends Activity {
         waitingScreen = findViewById(R.id.waitingScreen);
         videoContainer = findViewById(R.id.videoContainer);
         ipInput = findViewById(R.id.ipInput);
+        portInput = findViewById(R.id.portInput);
         macInput = findViewById(R.id.macInput);
         waitingStatusText = findViewById(R.id.waitingStatusText);
         waitingProgress = findViewById(R.id.waitingProgress);
@@ -95,6 +98,10 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 String ip = ipInput.getText().toString().trim();
+                String port = portInput.getText().toString().trim();
+                if (port.isEmpty()) {
+                    port = DEFAULT_PORT;
+                }
                 String mac = macInput.getText().toString().trim();
 
                 if (ip.isEmpty()) {
@@ -104,10 +111,11 @@ public class MainActivity extends Activity {
 
                 SharedPreferences.Editor editor = prefs.edit();
                 editor.putString(KEY_IP, ip);
+                editor.putString(KEY_PORT, port);
                 editor.putString(KEY_MAC, mac);
                 editor.apply();
 
-                attemptConnect(buildUrl(ip));
+                attemptConnect(buildUrl(ip, port));
             }
         });
 
@@ -123,6 +131,7 @@ public class MainActivity extends Activity {
             public void onClick(View v) {
                 isPolling = false;
                 ipInput.setText(prefs.getString(KEY_IP, ""));
+                portInput.setText(prefs.getString(KEY_PORT, DEFAULT_PORT));
                 macInput.setText(prefs.getString(KEY_MAC, ""));
                 showInputScreen();
             }
@@ -130,14 +139,14 @@ public class MainActivity extends Activity {
 
         String savedIp = prefs.getString(KEY_IP, null);
         if (savedIp != null && !savedIp.isEmpty()) {
-            attemptConnect(buildUrl(savedIp));
+            attemptConnect(buildUrl(savedIp, prefs.getString(KEY_PORT, DEFAULT_PORT)));
         } else {
             showInputScreen();
         }
     }
 
-    private static String buildUrl(String ip) {
-        return PREFIX + ip + PORT;
+    private static String buildUrl(String ip, String port) {
+        return PREFIX + ip + ":" + port;
     }
 
     private void setupWebView() {
@@ -280,7 +289,7 @@ public class MainActivity extends Activity {
 
     private void handleWaitingAction() {
         final String ip = prefs.getString(KEY_IP, "");
-        final String url = buildUrl(ip);
+        final String url = buildUrl(ip, prefs.getString(KEY_PORT, DEFAULT_PORT));
         final String mac = prefs.getString(KEY_MAC, "");
 
         if (!mac.isEmpty()) {
