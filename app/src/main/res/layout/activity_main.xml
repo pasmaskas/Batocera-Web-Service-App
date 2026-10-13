@@ -92,10 +92,28 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text=":1234"
+                android:text=":"
                 android:textColor="@color/accent_orange"
                 android:textSize="15sp"
                 android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/portInput"
+                android:layout_width="64dp"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:hint="1234"
+                android:text="1234"
+                android:textColorHint="@color/white_70"
+                android:textColor="@color/accent_orange"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:inputType="number"
+                android:maxLength="5"
+                android:gravity="center"
+                android:imeOptions="actionNext"
+                android:singleLine="true"
+                android:padding="0dp" />
         </LinearLayout>
 
         <EditText
